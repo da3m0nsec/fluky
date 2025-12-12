@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluky - Random Wheel Spinner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .list-section {
+            margin-bottom: 30px;
+        }
+
+        .list-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #listInput {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        #listInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .items-list {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 100px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .item:last-child {
+            margin-bottom: 0;
+        }
+
+        .item-text {
+            flex: 1;
+        }
+
+        .item-remove {
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+
+        .item-remove:hover {
+            background: #ee3542;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+        }
+
+        .wheel-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 20px;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid #333;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.1s;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .wheel-segment {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+        
+        .wheel-segment-inner {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+            white-space: nowrap;
+            z-index: 5;
+        }
+
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: #333;
+            border-radius: 50%;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #ff4757;
+            z-index: 20;
+        }
+
+        .result {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .result-text.animate-pop {
+            animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .result-empty {
+            color: #999;
+            font-size: 16px;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .confetti-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #667eea;
+            animation: confettiFall 2s ease-out forwards;
+        }
+
+        .confetti:nth-child(1) { left: 10%; background: #FF6B6B; animation-delay: 0s; }
+        .confetti:nth-child(2) { left: 20%; background: #4ECDC4; animation-delay: 0.1s; }
+        .confetti:nth-child(3) { left: 30%; background: #45B7D1; animation-delay: 0.2s; }
+        .confetti:nth-child(4) { left: 40%; background: #FFA07A; animation-delay: 0.3s; }
+        .confetti:nth-child(5) { left: 50%; background: #F7DC6F; animation-delay: 0.4s; }
+        .confetti:nth-child(6) { left: 60%; background: #BB8FCE; animation-delay: 0.5s; }
+        .confetti:nth-child(7) { left: 70%; background: #85C1E2; animation-delay: 0.6s; }
+        .confetti:nth-child(8) { left: 80%; background: #F8B739; animation-delay: 0.7s; }
+        .confetti:nth-child(9) { left: 90%; background: #52BE80; animation-delay: 0.8s; }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100%) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(200%) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-spin {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            font-size: 18px;
+        }
+
+        .btn-spin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-spin:disabled {
+            background: #ccc;
+            box-shadow: none;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .wheel-container {
+                width: 250px;
+                height: 250px;
+            }
+
+            .wheel-segment {
+                font-size: 12px;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        .spinning {
+            animation: spin 3s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(var(--rotation));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Fluky Wheel</h1>
+        
+        <div class="list-section">
+            <div class="list-input-container">
+                <input type="text" id="listInput" placeholder="Enter an item and press Enter or click Add">
+                <button class="btn btn-primary" id="addBtn">Add</button>
+            </div>
+            <div class="items-list" id="itemsList">
+                <div class="empty-message">No items yet. Add some items to get started!</div>
+            </div>
+        </div>
+
+        <div class="wheel-section">
+            <div class="wheel-container">
+                <div class="wheel-pointer"></div>
+                <div class="wheel" id="wheel"></div>
+                <div class="wheel-center">
+                    <span style="color: white; font-size: 20px;">🎯</span>
+                </div>
+            </div>
+            <div class="result" id="result">
+                <div class="result-text result-empty">Add items and spin the wheel!</div>
+            </div>
+            <div class="controls">
+                <button class="btn btn-spin" id="spinBtn" disabled>Spin the Wheel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let items = [];
+        let isSpinning = false;
+        let currentRotation = 0;
+
+        const listInput = document.getElementById('listInput');
+        const addBtn = document.getElementById('addBtn');
+        const itemsList = document.getElementById('itemsList');
+        const wheel = document.getElementById('wheel');
+        const spinBtn = document.getElementById('spinBtn');
+        const result = document.getElementById('result');
+
+        // Add item
+        function addItem() {
+            const text = listInput.value.trim();
+            if (text) {
+                items.push(text);
+                listInput.value = '';
+                updateItemsList();
+                updateWheel();
+                updateButtons();
+            }
+        }
+
+        // Remove item
+        function removeItem(index) {
+            items.splice(index, 1);
+            // Reset wheel state when items change
+            currentRotation = 0;
+            wheel.classList.remove('spinning');
+            isSpinning = false;
+            if (items.length === 0) {
+                result.innerHTML = '<div class="result-text result-empty">Add items and spin the wheel!</div>';
+            }
+            updateItemsList();
+            // Clear wheel first, then update
+            wheel.innerHTML = '';
+            wheel.style.transform = 'rotate(0deg)';
+            updateWheel();
+            updateButtons();
+        }
+
+        // Update items list display
+        function updateItemsList() {
+            if (items.length === 0) {
+                itemsList.innerHTML = '<div class="empty-message">No items yet. Add some items to get started!</div>';
+                return;
+            }
+
+            itemsList.innerHTML = items.map((item, index) => `
+                <div class="item">
+                    <span class="item-text">${escapeHtml(item)}</span>
+                    <button class="item-remove" onclick="removeItem(${index})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        // Update wheel display
+        function updateWheel() {
+            if (items.length === 0) {
+                wheel.innerHTML = '';
+                return;
+            }
+
+            const colors = [
+                '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+                '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52BE80',
+                '#EC7063', '#5DADE2', '#58D68D', '#F4D03F', '#AF7AC5'
+            ];
+
+            const segmentAngle = 360 / items.length;
+            const radius = 50; // 50% of container
+            const centerX = 50;
+            const centerY = 50;
+            
+            wheel.innerHTML = items.map((item, index) => {
+                const startAngle = index * segmentAngle;
+                const endAngle = (index + 1) * segmentAngle;
+                const color = colors[index % colors.length];
+                
+                // Convert angles to radians (CSS angles start from top, going clockwise)
+                // We need to subtract 90 to start from top
+                const startRad = ((startAngle - 90) * Math.PI) / 180;
+                const endRad = ((endAngle - 90) * Math.PI) / 180;
+                
+                // Calculate points for the polygon
+                // Start from center, go to start point, then along arc to end point
+                const polygonPoints = [`${centerX}% ${centerY}%`];
+                
+                // Add points along the arc (more points for smoother curve)
+                const numArcPoints = Math.max(5, Math.ceil(segmentAngle / 2));
+                for (let i = 0; i <= numArcPoints; i++) {
+                    const angle = startRad + (endRad - startRad) * (i / numArcPoints);
+                    const x = centerX + radius * Math.cos(angle);
+                    const y = centerY + radius * Math.sin(angle);
+                    polygonPoints.push(`${x}% ${y}%`);
+                }
+                
+                const clipPath = `polygon(${polygonPoints.join(', ')})`;
+                
+                // Calculate text position (middle of segment arc)
+                const textAngle = (startAngle + segmentAngle / 2 - 90) * Math.PI / 180;
+                const textRadius = 35; // Distance from center for text
+                const textX = centerX + textRadius * Math.cos(textAngle);
+                const textY = centerY + textRadius * Math.sin(textAngle);
+                
+                return `
+                    <div class="wheel-segment" style="
+                        background: ${color};
+                        clip-path: ${clipPath};
+                    ">
+                        <div class="wheel-segment-inner" style="
+                            left: ${textX}%;
+                            top: ${textY}%;
+                            transform: translate(-50%, -50%) rotate(${startAngle + segmentAngle / 2}deg);
+                        ">
+                            <span>${escapeHtml(item)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update button states
+        function updateButtons() {
+            spinBtn.disabled = items.length === 0 || isSpinning;
+        }
+
+        // Spin the wheel
+        function spinWheel() {
+            if (items.length === 0 || isSpinning) return;
+
+            isSpinning = true;
+            updateButtons();
+
+            // Random selection
+            const selectedIndex = Math.floor(Math.random() * items.length);
+            const selectedItem = items[selectedIndex];
+
+            // Calculate rotation
+            const segmentAngle = 360 / items.length;
+            // Center of the selected segment (in degrees from initial position)
+            const segmentCenterAngle = selectedIndex * segmentAngle + segmentAngle / 2;
+            
+            // Current rotation normalized to 0-360 range (for calculation only)
+            const currentNormalized = ((currentRotation % 360) + 360) % 360;
+            
+            // We want the segment center to be at the top (0 degrees) when it stops
+            // The target final position should be: 360 - segmentCenterAngle
+            const targetFinalAngle = (360 - segmentCenterAngle) % 360;
+            
+            // Calculate how much we need to rotate from current position
+            let additionalRotation = targetFinalAngle - currentNormalized;
+            if (additionalRotation < 0) {
+                additionalRotation += 360;
+            }
+            
+            // Add multiple full spins for visual effect
+            const spins = 5; // Number of full rotations
+            const totalRotation = spins * 360 + additionalRotation;
+            currentRotation += totalRotation;
+
+            // Apply animation
+            wheel.style.setProperty('--rotation', `${currentRotation}deg`);
+            wheel.classList.add('spinning');
+
+            // Update result after animation
+            setTimeout(() => {
+                // Create confetti effect
+                const confettiContainer = document.createElement('div');
+                confettiContainer.className = 'confetti-container';
+                for (let i = 0; i < 9; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confettiContainer.appendChild(confetti);
+                }
+                
+                // Create result text with animation
+                const resultText = document.createElement('div');
+                resultText.className = 'result-text animate-pop';
+                resultText.textContent = `🎉 ${selectedItem}`;
+                
+                // Clear and add new content
+                result.innerHTML = '';
+                result.appendChild(confettiContainer);
+                result.appendChild(resultText);
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    confettiContainer.remove();
+                }, 2000);
+                
+                wheel.classList.remove('spinning');
+                wheel.style.transform = `rotate(${currentRotation}deg)`;
+                isSpinning = false;
+                updateButtons();
+            }, 3000);
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Event listeners
+        addBtn.addEventListener('click', addItem);
+        listInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addItem();
+            }
+        });
+        spinBtn.addEventListener('click', spinWheel);
+
+        // Make removeItem available globally for inline onclick
+        window.removeItem = removeItem;
+
+        // Initialize
+        updateButtons();
+    </script>
+</body>
+</html>
+
